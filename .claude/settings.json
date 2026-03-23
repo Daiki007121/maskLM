@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "allow": ["pytest", "pip", "python", "git"],
+    "deny": ["rm -rf", "curl", "wget"]
+  }
+}

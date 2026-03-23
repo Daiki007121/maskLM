@@ -22,6 +22,9 @@ _PRESIDIO_ENTITIES: list[str] = list(PRESIDIO_ENTITY_MAP.keys())
 # Minimum confidence for ORG entities to reduce false positives.
 _ORG_SCORE_THRESHOLD: float = 0.7
 
+# Regex pattern matching typed placeholders like [NAME_1], [EMAIL_2].
+PLACEHOLDER_PATTERN: str = r"\[[A-Z]+_\d+\]"
+
 
 # ---------------------------------------------------------------------------
 # Detection
@@ -217,7 +220,7 @@ def mask_resume(text: str) -> MaskingResult:
             session_id=session_id,
         )
 
-    if re.search(r"\[[A-Z]+_\d+\]", text):
+    if re.search(PLACEHOLDER_PATTERN, text):
         raise ValueError(
             "Input text contains placeholder-like patterns "
             "(e.g. [NAME_1]). Pre-mask the input or remove "
@@ -241,9 +244,13 @@ def mask_resume(text: str) -> MaskingResult:
 def reinject(masked_text: str, mapping: dict[str, str]) -> str:
     """Replace placeholders in masked text with original values.
 
-    Any placeholder not found in the mapping is left unchanged.
+    Uses regex to find all typed placeholders (e.g. [NAME_1])
+    and substitutes each with its mapped original value. Any
+    placeholder not present in the mapping is left unchanged.
     """
-    result = masked_text
-    for placeholder, original in mapping.items():
-        result = result.replace(placeholder, original)
-    return result
+    def _replace_match(match: re.Match[str]) -> str:
+        """Return the original value for a matched placeholder."""
+        placeholder = match.group(0)
+        return mapping.get(placeholder, placeholder)
+
+    return re.sub(PLACEHOLDER_PATTERN, _replace_match, masked_text)

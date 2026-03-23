@@ -71,3 +71,76 @@ After the summary, run this git commit:
 git add .
 git commit -m "explore: analyze existing project structure
 for PII masking feature"
+
+---
+
+## Step 2 — Explore Phase
+
+**Prompt goal:** Understand existing codebase before
+writing any code (Phase 1 of Explore→Plan→Implement)
+
+**[SCREENSHOT 05 — Glob output]**
+![glob](screenshots/05_glob_output.png)
+
+Annotation: First step of the Explore phase — mapped the
+entire file structure using Glob before touching anything.
+In my previous workflow I would have started writing code
+immediately. Forcing this Explore step first gave CC and
+me a shared understanding of what already exists.
+
+---
+
+**[SCREENSHOT 06 — Grep output]**
+![grep](screenshots/06_grep_output.png)
+
+Annotation: Used Grep to check for existing masking or
+NLP utilities. Result showed [write what it found or
+didn't find]. This confirmed the masking pipeline would
+be built from scratch with no risk of duplicate logic.
+
+---
+
+**[SCREENSHOT 07 — Explore commit]**
+![explore commit](screenshots/07_explore_commit.png)
+
+Annotation: Committed after Explore phase only, before
+any implementation. This keeps the git history readable
+as a workflow record. The commit message clearly labels
+which phase this represents.
+
+```
+
+---
+
+## PROMPT 3 — Plan Phase
+```
+
+Now enter Plan mode. Do NOT write any implementation
+code yet.
+
+Design the architecture for the Resume PII Masking
+feature with these requirements:
+
+- Input: raw resume text (string)
+- Detect and mask: full names, email addresses,
+  phone numbers, current employer name
+- Replace each with typed placeholders:
+  [NAME_1], [EMAIL_1], [PHONE_1], [EMPLOYER_1]
+- Store a mapping of placeholder → original value
+  in memory as a dict
+- Output: masked_text (string) + mapping (dict)
+
+In your plan, answer:
+
+1. Should we use regex or presidio NER — which and why?
+2. What are the exact data structures?
+3. What are the exact function signatures?
+4. What edge cases need to be handled?
+5. What files will be created?
+
+Output the full plan as text. Do NOT write any code.
+
+Then commit:
+git add .
+git commit -m "plan: design PII masking pipeline
+for resume processing"

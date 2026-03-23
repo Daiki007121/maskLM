@@ -232,3 +232,18 @@ def mask_resume(text: str) -> MaskingResult:
         result.session_id, result.mapping
     )
     return result
+
+
+# ---------------------------------------------------------------------------
+# Re-injection
+# ---------------------------------------------------------------------------
+
+def reinject(masked_text: str, mapping: dict[str, str]) -> str:
+    """Replace placeholders in masked text with original values.
+
+    Any placeholder not found in the mapping is left unchanged.
+    """
+    result = masked_text
+    for placeholder, original in mapping.items():
+        result = result.replace(placeholder, original)
+    return result

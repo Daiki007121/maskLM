@@ -45,6 +45,14 @@ class MaskingResult:
 
 
 @dataclass
+class ValidationResult:
+    """Result of validating masked text for PII leaks."""
+
+    is_valid: bool
+    leaked_placeholders: list[str]
+
+
+@dataclass
 class SessionStore:
     """In-memory store of all active session mappings."""
 

@@ -1,4 +1,4 @@
-"""Failing tests for SessionStore.get_mapping retrieval."""
+"""Tests for SessionStore.get_mapping retrieval."""
 
 from src.models import SessionStore
 

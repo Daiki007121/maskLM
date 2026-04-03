@@ -23,6 +23,6 @@ def validate_masked_text(
             leaked.append(placeholder)
 
     return ValidationResult(
-        is_valid=len(leaked) == 0,
+        is_valid=not leaked,
         leaked_placeholders=leaked,
     )

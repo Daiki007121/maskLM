@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["pytest", "pip", "python", "git"],
-    "deny": ["rm -rf", "curl", "wget"]
+    "allow": ["Pytest", "Pip", "Python", "Git"],
+    "deny": ["Bash(rm -rf *)", "Curl", "Wget"]
   }
 }

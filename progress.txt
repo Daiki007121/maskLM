@@ -1,0 +1,90 @@
+MaskLM MVP — Ralph Loop Progress
+================================
+
+Project:     MaskLM (privacy-first PII masking middleware)
+Start:       2026-04-14
+Plan file:   .claude/plans/floating-squishing-marble.md
+Requirements: feature-requirements.md
+
+Tech stack
+----------
+- Python 3.11+
+- FastAPI + uvicorn (HTTP layer, optional [server] extra)
+- presidio-analyzer + presidio-anonymizer + spaCy (PII detection)
+- pytest + pytest-cov + httpx (testing)
+- uv (dependency management, build, publish)
+- hatchling (build backend)
+
+Current state
+-------------
+Core pipeline already implemented and tested before Ralph started:
+- src/masker.py  — detection, masking, re-injection, sessions
+- src/models.py  — data classes + in-memory SessionStore
+- src/validation.py — leak-detection safety net
+- tests/ — 36 passing tests (validation, reinjection, session store)
+
+MVP adds a packaging + interface layer on top, without touching
+any existing file.
+
+Tasks
+-----
+[x] Task 1: Write README.md
+    - Covers privacy pitch, install modes, library + HTTP usage,
+      API reference, dev setup, and post-MVP roadmap
+    - File: README.md (written 2026-04-14, committed with this
+      Ralph init)
+
+[ ] Task 2: Create pyproject.toml
+    - hatchling build backend, src/ as package
+    - dependencies: presidio-analyzer, presidio-anonymizer, spacy
+    - [server] extra: fastapi, uvicorn[standard]
+    - [dev] extra: pytest, pytest-cov, httpx, [server]
+    - [project.scripts]: masklm = "src.cli:main"
+    - verify: uv sync --extra dev
+
+[ ] Task 3: Create .gitignore
+    - Standard Python artifacts
+    - verify: git status clean after pytest run
+
+[ ] Task 4: Create src/__init__.py
+    - Re-export public API + __version__
+    - verify: from src import mask_resume works
+
+[ ] Task 5: Create src/api.py
+    - FastAPI: POST /mask, POST /unmask, DELETE /session/{id},
+      GET /health
+    - Delegate to existing src.masker and src.validation
+    - verify: Task 7 tests all pass
+
+[ ] Task 6: Create src/cli.py
+    - argparse + uvicorn.run, loopback-only default
+    - verify: `masklm serve` + `curl /health` returns ok
+
+[ ] Task 7: Create tests/test_api.py
+    - ~10 tests via fastapi.testclient.TestClient
+    - verify: uv run pytest tests/test_api.py -v
+
+[ ] Task 8: Full-suite verification
+    - Existing 36 tests + new API tests all pass
+    - Coverage on src/ ≥ 80% (CLAUDE.md requirement)
+    - verify: uv run pytest --cov=src --cov-report=term-missing
+
+[ ] Task 9: Build verification
+    - uv build produces wheel + sdist
+    - Wheel installs cleanly in a throwaway venv
+    - verify: import smoke test against installed wheel
+
+Deferred (post-MVP, tracked in plan file, not Ralph tasks)
+----------------------------------------------------------
+- Fuzzy re-injection for LLM-rewritten placeholders
+- Streaming unmask (SSE/token boundaries)
+- Multilingual NER (especially Chinese)
+- k-anonymity / quasi-identifier analysis
+- LLM-generated new PII on return trip
+- Fidelity-preserving fake-but-realistic substitutes
+- Multi-turn session persistence + TTL + concurrency
+- Structure-aware masking (JSON, Markdown, code blocks)
+- Synthetic PII fixtures (Faker)
+- /chat LLM proxy endpoint
+- Eval harness (pass@k, pass^k, LLM-judge fidelity)
+- Red-team adversarial evaluation

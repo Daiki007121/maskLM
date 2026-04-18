@@ -83,10 +83,11 @@ Tasks
     - Search bar with filtering + no-results state
     - verify: Playwright MCP — history persists across refresh ✓
 
-[ ] Task 8: Styling (Liquid Glass CSS)
+[x] Task 8: Styling (Liquid Glass CSS) (2026-04-17)
     - Port styles.css from design prototype to frontend
     - Dark/light mode, responsive, wallpaper blobs, glass effects
-    - verify: Playwright MCP — desktop + mobile viewport screenshots
+    - Added second grain noise layer for dark-mode dithering
+    - verify: Playwright MCP — desktop + mobile viewport screenshots ✓
 
 ### Phase 4 — CI + Deployment
 [ ] Task 9: GitHub Actions CI

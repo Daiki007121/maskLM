@@ -144,6 +144,18 @@ html[data-theme="dark"] .wallpaper .grain {
   opacity: 0.22;
   mix-blend-mode: soft-light;
 }
+/* A second, finer noise layer — pure luminance dither to kill remaining bands */
+.wallpaper::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/></svg>");
+  opacity: 0;
+  mix-blend-mode: overlay;
+}
+html[data-theme="dark"] .wallpaper::after {
+  opacity: 0.12;
+}
 
 @keyframes floatA { 0%{transform:translate(-4%,-2%) scale(1);} 100%{transform:translate(6%,4%) scale(1.08);} }
 @keyframes floatB { 0%{transform:translate(3%,-3%) scale(1.05);} 100%{transform:translate(-5%,5%) scale(1);} }

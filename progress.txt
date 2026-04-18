@@ -48,7 +48,7 @@ Tasks
       uvicorn, pydantic-settings), dev extras (pytest, pytest-cov, httpx)
     - verify: uv sync completes; uv run pytest tests/ passes 25 tests
 
-[ ] Task 2: Frontend scaffold (Vite + React + TypeScript)
+[x] Task 2: Frontend scaffold (Vite + React + TypeScript) (2026-04-17)
     - npm create vite@latest frontend -- --template react-ts
     - vite.config.ts: proxy /api → http://localhost:8000
     - verify: cd frontend && npm install && npm run dev starts

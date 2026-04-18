@@ -54,10 +54,10 @@ Tasks
     - verify: cd frontend && npm install && npm run dev starts
 
 ### Phase 2 — Backend (TDD)
-[ ] Task 3: Backend tests (RED phase)
-    - backend/tests/conftest.py + test_routes.py (~10 tests)
-    - POST /api/mask, POST /api/unmask, GET /api/health
-    - verify: tests exist and FAIL (no implementation yet)
+[x] Task 3: Backend tests (RED phase) (2026-04-17)
+    - backend/tests/conftest.py + test_routes.py (10 tests)
+    - POST /api/mask, POST /api/unmask, GET /api/health, CORS
+    - verify: tests exist and FAIL (ModuleNotFoundError — no impl yet)
 
 [ ] Task 4: Backend API implementation (GREEN phase)
     - backend/app/schemas.py, routes.py, main.py

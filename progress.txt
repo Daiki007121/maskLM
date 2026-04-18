@@ -95,9 +95,9 @@ Tasks
     - Combined coverage (tests/ + backend/tests/) reaches 87% on src/
     - verify: all 35 tests pass locally, frontend builds clean
 
-[ ] Task 10: Backend Dockerfile (Railway)
+[x] Task 10: Backend Dockerfile (Railway) (2026-04-17)
     - python:3.11-slim, spaCy en_core_web_sm, uvicorn
-    - verify: docker build succeeds; /api/health responds
+    - verify: docker build succeeds; /api/health responds ✓
 
 [ ] Task 11: Frontend Vercel config
     - vercel.json: SPA rewrites + CSP headers

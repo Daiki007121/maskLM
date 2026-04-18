@@ -99,9 +99,10 @@ Tasks
     - python:3.11-slim, spaCy en_core_web_sm, uvicorn
     - verify: docker build succeeds; /api/health responds ✓
 
-[ ] Task 11: Frontend Vercel config
-    - vercel.json: SPA rewrites + CSP headers
-    - verify: npm run build clean
+[x] Task 11: Frontend Vercel config (2026-04-17)
+    - vercel.json: SPA rewrites + CSP headers (script-src 'self')
+    - X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+    - verify: npm run build clean ✓
 
 ### Phase 5 — Verification
 [ ] Task 12: Integration test + security audit

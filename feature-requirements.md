@@ -1,100 +1,111 @@
-# MaskLM MVP — Feature Requirements
+# MaskLM Web App — Feature Requirements
 
 ## Goal
 
-Package the existing PII masking core as an installable Python
-tool and ship it to PyPI as `pip install masklm`. Expose both a
-library API (in-process Python use) and a local HTTP API
-(FastAPI, for non-Python clients and the local-proxy pattern).
+Pivot MaskLM from a pip package to a **web application**. Users
+(doctors, lawyers, etc.) paste PII-containing text into a browser
+UI, get masked output they can safely paste into any LLM, then
+paste the LLM response back to unmask it. No PII ever leaves the
+user's browser ↔ our backend boundary.
+
+## Architecture
+
+- **Frontend**: React + Vite + TypeScript → deploy to Vercel
+- **Backend**: FastAPI (stateless) + Presidio → deploy to Railway
+- **Auth**: deferred (Supabase, after user joins org)
+- **History**: localStorage (no encryption for MVP, strict CSP)
+- **Server is stateless**: mapping returned to frontend on mask,
+  frontend sends it back on unmask. No server-side session storage.
 
 ## Non-goals for this iteration
 
 - No modifications to `src/masker.py`, `src/models.py`,
   `src/validation.py`, or any existing file in `tests/`
-- No SaaS deployment — MaskLM is self-hosted only
-- No CI/CD, no Docker image, no frontend
-- No `/chat` LLM proxy endpoint (deferred to post-MVP)
-- None of the 12 future challenges recorded in the plan file
-  (fuzzy re-injection, streaming, multilingual NER, etc.)
+- No Supabase auth (deferred)
+- No CI/CD beyond GitHub Actions CI
+- No Docker Compose for local dev
+- No multilingual NER or any of the 12 future challenges
 
-## Source of truth
+## Design Reference
 
-Full plan: [`.claude/plans/floating-squishing-marble.md`](.claude/plans/floating-squishing-marble.md).
+UI prototype in `/tmp/masklm/project/` — Liquid Glass (iOS 26)
+style with split layout, dark/light mode, history drawer, tweaks
+panel. Mapping is NOT shown to user (handled by backend).
 
 ## Tasks
 
-- [x] Task 1: Write `README.md` covering what MaskLM is, privacy
-  guarantees, both install modes, Python and HTTP usage examples,
-  API reference, development setup, and post-MVP roadmap —
-  verified by: file exists at repo root and contains sections
-  "Install", "Usage", "API reference", "Development", "Roadmap"
+- [x] Task 0: Write `README.md` — verified by: file exists with
+  Install, Usage, API reference, Development, Roadmap sections
 
-- [ ] Task 2: Create `pyproject.toml` declaring the `masklm`
-  package (version 0.1.0, Python ≥3.11), core dependencies
-  (`presidio-analyzer`, `presidio-anonymizer`, `spacy`), a
-  `[server]` extra (`fastapi`, `uvicorn[standard]`), a `[dev]`
-  extra (`pytest`, `pytest-cov`, `httpx`, transitively `[server]`),
-  the `masklm` console script entrypoint, and a hatchling build
-  config that ships `src/` — verified by: `uv sync --extra dev`
-  completes without error
+- [ ] Task 1: Create `.gitignore` + `pyproject.toml` — Python
+  artifacts + node_modules + .env; hatchling build, deps for
+  core + backend — verified by: `uv sync` completes and
+  `uv run pytest tests/` passes 36 existing tests
 
-- [ ] Task 3: Create `.gitignore` covering standard Python
-  artifacts (`__pycache__/`, `*.pyc`, `.venv/`, `dist/`, `build/`,
-  `*.egg-info/`, `.pytest_cache/`, `.coverage`, `htmlcov/`) —
-  verified by: `git status` shows no stray build artifacts after
-  a test run
+- [ ] Task 2: Scaffold frontend with `npm create vite@latest
+  frontend -- --template react-ts`, add Vite proxy config for
+  `/api` → `localhost:8000` — verified by: `cd frontend &&
+  npm install && npm run dev` starts without errors
 
-- [ ] Task 4: Create `src/__init__.py` re-exporting the public
-  surface (`mask_resume`, `reinject`, `get_mapping`,
-  `delete_session`, `validate_masked_text`, `EntityType`,
-  `MaskingResult`, `DetectedEntity`, `ValidationResult`) plus
-  `__version__` — verified by: `uv run python -c "from src import
-  mask_resume, reinject, EntityType; print(mask_resume('test'))"`
-  succeeds
+- [ ] Task 3: Write backend tests FIRST (TDD RED phase):
+  `backend/tests/conftest.py` + `test_routes.py` covering
+  `POST /api/mask` happy path, empty text, double-mask 400,
+  `POST /api/unmask` happy path, empty mapping 400, round-trip,
+  `GET /api/health` 200 — verified by: tests exist and FAIL
+  (no implementation yet)
 
-- [ ] Task 5: Create `src/api.py` — a FastAPI app exposing
-  `POST /mask`, `POST /unmask`, `DELETE /session/{id}`, and
-  `GET /health`. All routes delegate to existing functions from
-  `src.masker` and `src.validation`; no new business logic.
-  Maps `ValueError` → 400, missing session → 404, leak
-  invariant breach → 500 — verified by: the new endpoint tests
-  in Task 7 all pass
+- [ ] Task 4: Implement backend API (TDD GREEN phase):
+  `backend/app/schemas.py` (Pydantic models), `routes.py`
+  (3 endpoints), `main.py` (FastAPI app + CORS + security
+  headers) — verified by: all Task 3 tests pass and
+  `uvicorn backend.app.main:app` starts
 
-- [ ] Task 6: Create `src/cli.py` providing a `masklm` command
-  with a `serve` subcommand that runs uvicorn on
-  `127.0.0.1:8000` by default, with `--host` and `--port`
-  overrides — verified by: `uv run masklm serve` starts the
-  server and `curl http://127.0.0.1:8000/health` returns
-  `{"status":"ok"}`
+- [ ] Task 5: Create frontend API client
+  `frontend/src/api/client.ts` + `frontend/src/types/index.ts`
+  with `maskText()`, `unmaskText()`, `healthCheck()` —
+  verified by: `npm run build` compiles without type errors
 
-- [ ] Task 7: Create `tests/test_api.py` with ~10 tests using
-  `fastapi.testclient.TestClient` covering: `/mask` happy path,
-  empty text, double-mask rejection; `/unmask` happy path,
-  unknown session 404, unknown-placeholder tolerance; `/session`
-  DELETE happy path + 404; `/health`; end-to-end mask → fake
-  LLM response → unmask round-trip; session isolation between
-  concurrent sessions — verified by: `uv run pytest
-  tests/test_api.py -v` all green
+- [ ] Task 6: Implement main mask/unmask page with Liquid Glass
+  UI: `MaskPage.tsx` two-panel split layout, `TextInput.tsx`,
+  `MaskResult.tsx` (token chips + copy button), `UnmaskResult.tsx`,
+  `Navbar.tsx`. Loading/error states, disabled buttons during
+  API calls — verified by: Playwright MCP full mask → unmask
+  flow works in browser
 
-- [ ] Task 8: Full-suite verification — existing 36 tests plus
-  new API tests pass together, coverage on `src/` is ≥80% per
-  CLAUDE.md — verified by: `uv run pytest --cov=src
-  --cov-report=term-missing` shows all tests pass and coverage
-  ≥80%
+- [ ] Task 7: Implement session history with localStorage:
+  `useLocalHistory.ts` hook storing `{id, timestamp, originalText,
+  maskedText, mapping}`, max 50 entries. `HistoryPanel.tsx` drawer
+  with search, re-unmask, re-edit original, edit mapping, delete,
+  clear all — verified by: Playwright MCP history persists across
+  page refresh
 
-- [ ] Task 9: Build verification — `uv build` produces a wheel
-  and sdist, and the wheel installs cleanly into a throwaway
-  venv with the library importable — verified by: `uv build &&
-  ls dist/masklm-0.1.0-py3-none-any.whl && uv venv /tmp/masklm-
-  verify && /tmp/masklm-verify/bin/pip install dist/masklm-0.1.0*
-  .whl && /tmp/masklm-verify/bin/python -c "from src import
-  mask_resume; print(mask_resume('test').session_id)"`
+- [ ] Task 8: Port Liquid Glass CSS from design prototype:
+  wallpaper blobs, glass primitives, dark/light mode, responsive
+  layout, chips, buttons, drawer, toast — verified by: Playwright
+  MCP screenshots at desktop + mobile viewports
 
-## Out of scope (explicit reminders)
+- [ ] Task 9: Create GitHub Actions CI pipeline:
+  `.github/workflows/ci.yml` with `backend-test` (pytest + coverage
+  ≥ 80%) and `frontend-build` (npm ci + tsc) jobs — verified by:
+  push branch, CI passes green
 
-- PyPI upload itself is a manual step after Task 9 passes
-  (register account, generate token, confirm name availability,
-  `uv publish`). Not tracked as a Ralph task.
-- Adding a `masklm/` shim package that re-exports from `src` is
-  a cosmetic follow-up deferred until after Task 9 reveals
-  whether the `from src import ...` style is acceptable.
+- [ ] Task 10: Create backend Dockerfile for Railway:
+  python:3.11-slim, copy src/ + backend/, install deps, download
+  spaCy en_core_web_sm, run uvicorn — verified by: `docker build`
+  succeeds and container `/api/health` responds
+
+- [ ] Task 11: Create frontend Vercel config: `vercel.json` with
+  SPA rewrites + strict CSP headers (`script-src 'self'`) —
+  verified by: `npm run build` produces clean dist/
+
+- [ ] Task 12: Integration test + security audit: full E2E via
+  Playwright MCP, CORS validation, CSP headers present, no PII
+  in server logs, all existing 36 tests + backend tests pass,
+  coverage ≥ 80% — verified by: all checks green
+
+## Out of scope
+
+- Supabase auth (separate phase after user joins org)
+- PyPI publication (no longer the deployment target)
+- PII encryption in localStorage
+- Any of the 12 future challenges from the old plan

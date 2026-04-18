@@ -1,90 +1,115 @@
-MaskLM MVP — Ralph Loop Progress
-================================
+MaskLM Web App — Ralph Loop Progress
+=====================================
 
-Project:     MaskLM (privacy-first PII masking middleware)
+Project:     MaskLM (privacy-first PII masking web app)
 Start:       2026-04-14
+Pivot:       2026-04-17 (pip package → web application)
 Plan file:   .claude/plans/floating-squishing-marble.md
 Requirements: feature-requirements.md
+Design ref:  /tmp/masklm/project/ (Liquid Glass UI prototype)
 
 Tech stack
 ----------
-- Python 3.11+
-- FastAPI + uvicorn (HTTP layer, optional [server] extra)
+- Python 3.11+ (backend)
+- FastAPI + uvicorn (stateless API)
 - presidio-analyzer + presidio-anonymizer + spaCy (PII detection)
-- pytest + pytest-cov + httpx (testing)
-- uv (dependency management, build, publish)
-- hatchling (build backend)
+- React + Vite + TypeScript (frontend)
+- pytest + pytest-cov + httpx (backend testing)
+- Playwright MCP (frontend E2E testing)
+- uv (Python dependency management)
+- Supabase Auth (deferred — not in MVP)
+
+Architecture
+------------
+- Stateless server: mapping returned to frontend, sent back on unmask
+- Frontend: React SPA with Liquid Glass (iOS 26) styling
+- Backend: FastAPI wrapping existing src/masker.py + src/validation.py
+- History: localStorage (originalText + maskedText + mapping per entry)
+- Deploy: Vercel (frontend) + Railway (backend)
 
 Current state
 -------------
-Core pipeline already implemented and tested before Ralph started:
+Core pipeline (DO NOT MODIFY):
 - src/masker.py  — detection, masking, re-injection, sessions
 - src/models.py  — data classes + in-memory SessionStore
 - src/validation.py — leak-detection safety net
 - tests/ — 36 passing tests (validation, reinjection, session store)
 
-MVP adds a packaging + interface layer on top, without touching
-any existing file.
+README.md written (2026-04-14, will need update for web app).
 
 Tasks
 -----
-[x] Task 1: Write README.md
-    - Covers privacy pitch, install modes, library + HTTP usage,
-      API reference, dev setup, and post-MVP roadmap
-    - File: README.md (written 2026-04-14, committed with this
-      Ralph init)
+[x] Task 0: Write README.md (2026-04-14, pre-pivot)
 
-[ ] Task 2: Create pyproject.toml
-    - hatchling build backend, src/ as package
-    - dependencies: presidio-analyzer, presidio-anonymizer, spacy
-    - [server] extra: fastapi, uvicorn[standard]
-    - [dev] extra: pytest, pytest-cov, httpx, [server]
-    - [project.scripts]: masklm = "src.cli:main"
-    - verify: uv sync --extra dev
+### Phase 1 — Foundation
+[ ] Task 1: .gitignore + pyproject.toml
+    - .gitignore: Python artifacts + node_modules/ + .env + dist/
+    - pyproject.toml: hatchling build, deps (presidio, spacy, fastapi,
+      uvicorn, pydantic-settings), dev extras (pytest, pytest-cov, httpx)
+    - verify: uv sync completes; uv run pytest tests/ passes 36 tests
 
-[ ] Task 3: Create .gitignore
-    - Standard Python artifacts
-    - verify: git status clean after pytest run
+[ ] Task 2: Frontend scaffold (Vite + React + TypeScript)
+    - npm create vite@latest frontend -- --template react-ts
+    - vite.config.ts: proxy /api → http://localhost:8000
+    - verify: cd frontend && npm install && npm run dev starts
 
-[ ] Task 4: Create src/__init__.py
-    - Re-export public API + __version__
-    - verify: from src import mask_resume works
+### Phase 2 — Backend (TDD)
+[ ] Task 3: Backend tests (RED phase)
+    - backend/tests/conftest.py + test_routes.py (~10 tests)
+    - POST /api/mask, POST /api/unmask, GET /api/health
+    - verify: tests exist and FAIL (no implementation yet)
 
-[ ] Task 5: Create src/api.py
-    - FastAPI: POST /mask, POST /unmask, DELETE /session/{id},
-      GET /health
-    - Delegate to existing src.masker and src.validation
-    - verify: Task 7 tests all pass
+[ ] Task 4: Backend API implementation (GREEN phase)
+    - backend/app/schemas.py, routes.py, main.py
+    - CORS, security headers, stateless (no session storage)
+    - verify: all Task 3 tests pass; uvicorn starts
 
-[ ] Task 6: Create src/cli.py
-    - argparse + uvicorn.run, loopback-only default
-    - verify: `masklm serve` + `curl /health` returns ok
+### Phase 3 — Frontend
+[ ] Task 5: API client + TypeScript types
+    - frontend/src/api/client.ts + types/index.ts
+    - verify: npm run build compiles cleanly
 
-[ ] Task 7: Create tests/test_api.py
-    - ~10 tests via fastapi.testclient.TestClient
-    - verify: uv run pytest tests/test_api.py -v
+[ ] Task 6: Main mask/unmask page (Liquid Glass UI)
+    - MaskPage.tsx: two-panel split layout from design prototype
+    - TextInput, MaskResult, UnmaskResult, Navbar components
+    - Loading/error states, copy-to-clipboard, token chips
+    - verify: Playwright MCP — full mask → unmask flow in browser
 
-[ ] Task 8: Full-suite verification
-    - Existing 36 tests + new API tests all pass
-    - Coverage on src/ ≥ 80% (CLAUDE.md requirement)
-    - verify: uv run pytest --cov=src --cov-report=term-missing
+[ ] Task 7: Session history (localStorage)
+    - useLocalHistory.ts hook + HistoryPanel drawer component
+    - Operations: re-unmask, re-edit original, edit mapping, delete, clear
+    - verify: Playwright MCP — history persists across refresh
 
-[ ] Task 9: Build verification
-    - uv build produces wheel + sdist
-    - Wheel installs cleanly in a throwaway venv
-    - verify: import smoke test against installed wheel
+[ ] Task 8: Styling (Liquid Glass CSS)
+    - Port styles.css from design prototype to frontend
+    - Dark/light mode, responsive, wallpaper blobs, glass effects
+    - verify: Playwright MCP — desktop + mobile viewport screenshots
 
-Deferred (post-MVP, tracked in plan file, not Ralph tasks)
-----------------------------------------------------------
-- Fuzzy re-injection for LLM-rewritten placeholders
-- Streaming unmask (SSE/token boundaries)
-- Multilingual NER (especially Chinese)
-- k-anonymity / quasi-identifier analysis
-- LLM-generated new PII on return trip
-- Fidelity-preserving fake-but-realistic substitutes
-- Multi-turn session persistence + TTL + concurrency
-- Structure-aware masking (JSON, Markdown, code blocks)
-- Synthetic PII fixtures (Faker)
-- /chat LLM proxy endpoint
-- Eval harness (pass@k, pass^k, LLM-judge fidelity)
-- Red-team adversarial evaluation
+### Phase 4 — CI + Deployment
+[ ] Task 9: GitHub Actions CI
+    - .github/workflows/ci.yml: backend-test + frontend-build jobs
+    - verify: push branch, CI green
+
+[ ] Task 10: Backend Dockerfile (Railway)
+    - python:3.11-slim, spaCy en_core_web_sm, uvicorn
+    - verify: docker build succeeds; /api/health responds
+
+[ ] Task 11: Frontend Vercel config
+    - vercel.json: SPA rewrites + CSP headers
+    - verify: npm run build clean
+
+### Phase 5 — Verification
+[ ] Task 12: Integration test + security audit
+    - Full E2E flow via Playwright MCP
+    - CORS, CSP, no PII in server logs
+    - All tests pass, coverage ≥ 80% on src/
+    - verify: all checks green
+
+Deferred (post-MVP)
+-------------------
+- Supabase auth (after user joins org)
+- PII encryption in localStorage
+- CD pipeline (auto-deploy on merge)
+- en_core_web_lg model upgrade
+- Manual entity editing in UI
+- Multilingual NER, streaming unmask, etc.

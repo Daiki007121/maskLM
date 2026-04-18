@@ -59,7 +59,7 @@ Tasks
     - POST /api/mask, POST /api/unmask, GET /api/health, CORS
     - verify: tests exist and FAIL (ModuleNotFoundError — no impl yet)
 
-[ ] Task 4: Backend API implementation (GREEN phase)
+[x] Task 4: Backend API implementation (GREEN phase) (2026-04-17)
     - backend/app/schemas.py, routes.py, main.py
     - CORS, security headers, stateless (no session storage)
     - verify: all Task 3 tests pass; uvicorn starts

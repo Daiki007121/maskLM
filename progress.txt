@@ -69,11 +69,13 @@ Tasks
     - frontend/src/api/client.ts + types/index.ts
     - verify: npm run build compiles cleanly
 
-[ ] Task 6: Main mask/unmask page (Liquid Glass UI)
+[x] Task 6: Main mask/unmask page (Liquid Glass UI) (2026-04-17)
     - MaskPage.tsx: two-panel split layout from design prototype
-    - TextInput, MaskResult, UnmaskResult, Navbar components
+    - TextInput, MaskResult, UnmaskResult, Navbar, Toast, Icons components
     - Loading/error states, copy-to-clipboard, token chips
-    - verify: Playwright MCP — full mask → unmask flow in browser
+    - History drawer with load/delete/clear
+    - Liquid Glass CSS ported from prototype
+    - verify: Playwright MCP — full mask → unmask flow in browser ✓
 
 [ ] Task 7: Session history (localStorage)
     - useLocalHistory.ts hook + HistoryPanel drawer component

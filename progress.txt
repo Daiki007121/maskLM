@@ -105,11 +105,13 @@ Tasks
     - verify: npm run build clean ✓
 
 ### Phase 5 — Verification
-[ ] Task 12: Integration test + security audit
-    - Full E2E flow via Playwright MCP
-    - CORS, CSP, no PII in server logs
-    - All tests pass, coverage ≥ 80% on src/
-    - verify: all checks green
+[x] Task 12: Integration test + security audit (2026-04-17)
+    - Full E2E flow via Playwright MCP: mask → unmask round-trip ✓
+    - CORS properly configured (allow_origins whitelist) ✓
+    - CSP headers in vercel.json (script-src 'self') ✓
+    - No PII logging in application code ✓
+    - All 35 tests pass, coverage 87% on src/ ✓
+    - verify: all checks green ✓
 
 Deferred (post-MVP)
 -------------------

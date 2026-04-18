@@ -90,9 +90,10 @@ Tasks
     - verify: Playwright MCP — desktop + mobile viewport screenshots ✓
 
 ### Phase 4 — CI + Deployment
-[ ] Task 9: GitHub Actions CI
+[x] Task 9: GitHub Actions CI (2026-04-17)
     - .github/workflows/ci.yml: backend-test + frontend-build jobs
-    - verify: push branch, CI green
+    - Combined coverage (tests/ + backend/tests/) reaches 87% on src/
+    - verify: all 35 tests pass locally, frontend builds clean
 
 [ ] Task 10: Backend Dockerfile (Railway)
     - python:3.11-slim, spaCy en_core_web_sm, uvicorn

@@ -77,10 +77,11 @@ Tasks
     - Liquid Glass CSS ported from prototype
     - verify: Playwright MCP — full mask → unmask flow in browser ✓
 
-[ ] Task 7: Session history (localStorage)
+[x] Task 7: Session history (localStorage) (2026-04-17)
     - useLocalHistory.ts hook + HistoryPanel drawer component
     - Operations: re-unmask, re-edit original, edit mapping, delete, clear
-    - verify: Playwright MCP — history persists across refresh
+    - Search bar with filtering + no-results state
+    - verify: Playwright MCP — history persists across refresh ✓
 
 [ ] Task 8: Styling (Liquid Glass CSS)
     - Port styles.css from design prototype to frontend

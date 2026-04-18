@@ -25,3 +25,12 @@ export interface UnmaskResponse {
 export interface HealthResponse {
   status: string;
 }
+
+/** A single history entry stored in localStorage. */
+export interface HistoryEntry {
+  id: string;
+  createdAt: number;
+  original: string;
+  masked: string;
+  mapping: Record<string, string>;
+}

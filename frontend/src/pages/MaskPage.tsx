@@ -3,9 +3,12 @@ import Navbar from "../components/Navbar";
 import TextInput from "../components/TextInput";
 import MaskResult from "../components/MaskResult";
 import UnmaskResult from "../components/UnmaskResult";
+import HistoryPanel from "../components/HistoryPanel";
 import Toast from "../components/Toast";
 import * as Icon from "../components/Icons";
 import { maskText, unmaskText } from "../api/client";
+import { useLocalHistory } from "../hooks/useLocalHistory";
+import type { HistoryEntry } from "../types";
 
 interface MaskState {
   input: string;
@@ -19,15 +22,6 @@ interface UnmaskState {
   mapping: Record<string, string>;
 }
 
-interface HistoryEntry {
-  id: string;
-  createdAt: number;
-  original: string;
-  masked: string;
-  mapping: Record<string, string>;
-}
-
-const HISTORY_KEY = "masklm.history.v1";
 const THEME_KEY = "masklm.theme.v1";
 
 function loadJSON<T>(key: string, fallback: T): T {
@@ -69,23 +63,18 @@ export default function MaskPage() {
     output: "",
     mapping: {},
   });
-  const [history, setHistory] = useState<HistoryEntry[]>(() =>
-    loadJSON<HistoryEntry[]>(HISTORY_KEY, []),
-  );
+  const history = useLocalHistory();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [maskLoading, setMaskLoading] = useState(false);
   const [unmaskLoading, setUnmaskLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Persist
+  // Persist theme
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     saveJSON(THEME_KEY, theme);
   }, [theme]);
-  useEffect(() => {
-    saveJSON(HISTORY_KEY, history);
-  }, [history]);
 
   // Toast helper
   const showToast = useCallback((msg: string) => {
@@ -119,14 +108,11 @@ export default function MaskPage() {
       }));
       setUnmaskState((prev) => ({ ...prev, mapping: resp.mapping }));
 
-      const entry: HistoryEntry = {
-        id: crypto.randomUUID?.() || String(Date.now()),
-        createdAt: Date.now(),
+      history.add({
         original: mask.input,
         masked: resp.masked_text,
         mapping: resp.mapping,
-      };
-      setHistory((h) => [entry, ...h].slice(0, 50));
+      });
 
       const count = Object.keys(resp.mapping).length;
       showToast(`Masked ${count} item${count === 1 ? "" : "s"}`);
@@ -136,7 +122,7 @@ export default function MaskPage() {
     } finally {
       setMaskLoading(false);
     }
-  }, [mask.input, maskLoading, showToast]);
+  }, [mask.input, maskLoading, showToast, history]);
 
   const doUnmask = useCallback(async () => {
     if (!unmaskState.input.trim() || unmaskLoading) return;
@@ -164,12 +150,15 @@ export default function MaskPage() {
     },
     [showToast],
   );
-  const onDelete = useCallback((id: string) => {
-    setHistory((h) => h.filter((x) => x.id !== id));
-  }, []);
-  const onClear = useCallback(() => {
-    setHistory([]);
-  }, []);
+
+  const onReUnmask = useCallback(
+    (h: HistoryEntry) => {
+      setUnmaskState({ input: h.masked, output: "", mapping: h.mapping });
+      setDrawerOpen(false);
+      showToast("Loaded into Unmask panel");
+    },
+    [showToast],
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -210,7 +199,7 @@ export default function MaskPage() {
           onToggleTheme={() =>
             setTheme((t) => (t === "dark" ? "light" : "dark"))
           }
-          historyCount={history.length}
+          historyCount={history.entries.length}
           onOpenHistory={() => setDrawerOpen(true)}
         />
 
@@ -317,67 +306,19 @@ export default function MaskPage() {
         </div>
       </div>
 
-      {/* History Drawer */}
-      <div
-        className={`drawer-backdrop ${drawerOpen ? "open" : ""}`}
-        onClick={() => setDrawerOpen(false)}
+      <HistoryPanel
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        entries={history.entries}
+        filteredEntries={history.filteredEntries}
+        searchQuery={history.searchQuery}
+        onSearchChange={history.setSearchQuery}
+        onLoad={onLoadMask}
+        onReUnmask={onReUnmask}
+        onDelete={history.remove}
+        onClear={history.clear}
+        onUpdateMapping={history.updateMapping}
       />
-      <div className={`drawer liquid ${drawerOpen ? "open" : ""}`}>
-        <div className="drawer-header">
-          <span className="drawer-title">History</span>
-          <button
-            className="icon-btn"
-            onClick={() => setDrawerOpen(false)}
-          >
-            <Icon.X />
-          </button>
-        </div>
-        <div className="history-list">
-          {history.length === 0 ? (
-            <div className="history-empty">
-              No masking history yet.<br />
-              Mask some text to get started.
-            </div>
-          ) : (
-            history.map((h) => (
-              <div key={h.id} className="history-item">
-                <div className="history-item-top">
-                  <div className="meta">
-                    <span className="dot" />
-                    <span>
-                      {new Date(h.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="history-preview">
-                  {h.original.slice(0, 120)}
-                </div>
-                <div className="history-actions">
-                  <button
-                    className="history-action"
-                    onClick={() => onLoadMask(h)}
-                  >
-                    Load
-                  </button>
-                  <button
-                    className="history-action danger"
-                    onClick={() => onDelete(h.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        {history.length > 0 && (
-          <div style={{ padding: "12px 16px" }}>
-            <button className="btn btn-ghost btn-danger" onClick={onClear}>
-              <Icon.Trash /> Clear all
-            </button>
-          </div>
-        )}
-      </div>
 
       <Toast message={toast} />
     </>

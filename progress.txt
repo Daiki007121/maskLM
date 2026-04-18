@@ -65,7 +65,7 @@ Tasks
     - verify: all Task 3 tests pass; uvicorn starts
 
 ### Phase 3 — Frontend
-[ ] Task 5: API client + TypeScript types
+[x] Task 5: API client + TypeScript types (2026-04-17)
     - frontend/src/api/client.ts + types/index.ts
     - verify: npm run build compiles cleanly
 

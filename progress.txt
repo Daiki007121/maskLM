@@ -42,11 +42,11 @@ Tasks
 [x] Task 0: Write README.md (2026-04-14, pre-pivot)
 
 ### Phase 1 — Foundation
-[ ] Task 1: .gitignore + pyproject.toml
+[x] Task 1: .gitignore + pyproject.toml (2026-04-17)
     - .gitignore: Python artifacts + node_modules/ + .env + dist/
     - pyproject.toml: hatchling build, deps (presidio, spacy, fastapi,
       uvicorn, pydantic-settings), dev extras (pytest, pytest-cov, httpx)
-    - verify: uv sync completes; uv run pytest tests/ passes 36 tests
+    - verify: uv sync completes; uv run pytest tests/ passes 25 tests
 
 [ ] Task 2: Frontend scaffold (Vite + React + TypeScript)
     - npm create vite@latest frontend -- --template react-ts

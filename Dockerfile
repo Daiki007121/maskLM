@@ -7,14 +7,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Copy all source code first (needed for pip install .)
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir . && \
-    python -m spacy download en_core_web_sm
-
-# Copy application code
 COPY src/ src/
 COPY backend/ backend/
+
+# Install Python dependencies + spaCy model
+RUN pip install --no-cache-dir . && \
+    python -m spacy download en_core_web_sm
 
 EXPOSE 8000
 

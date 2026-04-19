@@ -124,7 +124,7 @@ uv sync
 uv run python -m spacy download en_core_web_sm
 
 # Frontend
-cd frontend && npm install
+cd frontend && pnpm install
 ```
 
 ### Running locally
@@ -136,7 +136,7 @@ Start both servers in separate terminals:
 uv run uvicorn backend.app.main:app --reload
 
 # Terminal 2 — Frontend (port 5173, proxies /api → :8000)
-cd frontend && npm run dev
+cd frontend && pnpm run dev
 ```
 
 Open http://localhost:5173 in your browser.
@@ -151,7 +151,7 @@ uv run pytest
 uv run pytest --cov=src --cov-report=term-missing
 
 # Frontend type check
-cd frontend && npx tsc --noEmit
+cd frontend && pnpm tsc --noEmit
 ```
 
 ### Project layout

@@ -49,9 +49,9 @@ Tasks
     - verify: uv sync completes; uv run pytest tests/ passes 25 tests
 
 [x] Task 2: Frontend scaffold (Vite + React + TypeScript) (2026-04-17)
-    - npm create vite@latest frontend -- --template react-ts
+    - pnpm create vite@latest frontend -- --template react-ts
     - vite.config.ts: proxy /api → http://localhost:8000
-    - verify: cd frontend && npm install && npm run dev starts
+    - verify: cd frontend && pnpm install && pnpm run dev starts
 
 ### Phase 2 — Backend (TDD)
 [x] Task 3: Backend tests (RED phase) (2026-04-17)
@@ -67,7 +67,7 @@ Tasks
 ### Phase 3 — Frontend
 [x] Task 5: API client + TypeScript types (2026-04-17)
     - frontend/src/api/client.ts + types/index.ts
-    - verify: npm run build compiles cleanly
+    - verify: pnpm run build compiles cleanly
 
 [x] Task 6: Main mask/unmask page (Liquid Glass UI) (2026-04-17)
     - MaskPage.tsx: two-panel split layout from design prototype
@@ -102,7 +102,7 @@ Tasks
 [x] Task 11: Frontend Vercel config (2026-04-17)
     - vercel.json: SPA rewrites + CSP headers (script-src 'self')
     - X-Content-Type-Options, X-Frame-Options, Referrer-Policy
-    - verify: npm run build clean ✓
+    - verify: pnpm run build clean ✓
 
 ### Phase 5 — Verification
 [x] Task 12: Integration test + security audit (2026-04-17)

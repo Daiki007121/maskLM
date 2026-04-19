@@ -42,10 +42,10 @@ panel. Mapping is NOT shown to user (handled by backend).
   core + backend — verified by: `uv sync` completes and
   `uv run pytest tests/` passes 36 existing tests
 
-- [ ] Task 2: Scaffold frontend with `npm create vite@latest
+- [ ] Task 2: Scaffold frontend with `pnpm create vite@latest
   frontend -- --template react-ts`, add Vite proxy config for
   `/api` → `localhost:8000` — verified by: `cd frontend &&
-  npm install && npm run dev` starts without errors
+  pnpm install && pnpm run dev` starts without errors
 
 - [ ] Task 3: Write backend tests FIRST (TDD RED phase):
   `backend/tests/conftest.py` + `test_routes.py` covering
@@ -63,7 +63,7 @@ panel. Mapping is NOT shown to user (handled by backend).
 - [ ] Task 5: Create frontend API client
   `frontend/src/api/client.ts` + `frontend/src/types/index.ts`
   with `maskText()`, `unmaskText()`, `healthCheck()` —
-  verified by: `npm run build` compiles without type errors
+  verified by: `pnpm run build` compiles without type errors
 
 - [ ] Task 6: Implement main mask/unmask page with Liquid Glass
   UI: `MaskPage.tsx` two-panel split layout, `TextInput.tsx`,
@@ -86,7 +86,7 @@ panel. Mapping is NOT shown to user (handled by backend).
 
 - [ ] Task 9: Create GitHub Actions CI pipeline:
   `.github/workflows/ci.yml` with `backend-test` (pytest + coverage
-  ≥ 80%) and `frontend-build` (npm ci + tsc) jobs — verified by:
+  ≥ 80%) and `frontend-build` (pnpm ci + tsc) jobs — verified by:
   push branch, CI passes green
 
 - [ ] Task 10: Create backend Dockerfile for Railway:
@@ -96,7 +96,7 @@ panel. Mapping is NOT shown to user (handled by backend).
 
 - [ ] Task 11: Create frontend Vercel config: `vercel.json` with
   SPA rewrites + strict CSP headers (`script-src 'self'`) —
-  verified by: `npm run build` produces clean dist/
+  verified by: `pnpm run build` produces clean dist/
 
 - [ ] Task 12: Integration test + security audit: full E2E via
   Playwright MCP, CORS validation, CSP headers present, no PII

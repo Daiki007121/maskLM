@@ -131,7 +131,16 @@ export default function MaskPage() {
     try {
       const resp = await unmaskText(unmaskState.input, unmaskState.mapping);
       setUnmaskState((prev) => ({ ...prev, output: resp.text }));
-      showToast("Unmasked");
+
+      // Save unmask result to the most recent history entry with matching mapping
+      const match = history.entries.find(
+        (e) => JSON.stringify(e.mapping) === JSON.stringify(unmaskState.mapping),
+      );
+      if (match) {
+        history.updateUnmask(match.id, unmaskState.input, resp.text);
+      }
+
+      showToast("Restored");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unmask failed";
       setError(msg);
@@ -144,18 +153,13 @@ export default function MaskPage() {
   const onLoadMask = useCallback(
     (h: HistoryEntry) => {
       setMask({ input: h.original, output: h.masked, mapping: h.mapping });
-      setUnmaskState((prev) => ({ ...prev, mapping: h.mapping }));
+      setUnmaskState({
+        input: h.unmaskInput ?? "",
+        output: h.unmaskOutput ?? "",
+        mapping: h.mapping,
+      });
       setDrawerOpen(false);
-      showToast("Loaded into Mask panel");
-    },
-    [showToast],
-  );
-
-  const onReUnmask = useCallback(
-    (h: HistoryEntry) => {
-      setUnmaskState({ input: h.masked, output: "", mapping: h.mapping });
-      setDrawerOpen(false);
-      showToast("Loaded into Unmask panel");
+      showToast("Session restored");
     },
     [showToast],
   );
@@ -199,7 +203,6 @@ export default function MaskPage() {
           onToggleTheme={() =>
             setTheme((t) => (t === "dark" ? "light" : "dark"))
           }
-          historyCount={history.entries.length}
           onOpenHistory={() => setDrawerOpen(true)}
         />
 
@@ -262,10 +265,10 @@ export default function MaskPage() {
               <div>
                 <div className="panel-title">
                   <span className="panel-step">2</span>
-                  Unmask LLM response
+                  Restore response
                 </div>
                 <div className="panel-sub">
-                  Paste the LLM's reply → tokens swap back to originals.
+                  Paste the LLM's reply → restore original names &amp; details.
                 </div>
               </div>
               <button
@@ -291,7 +294,7 @@ export default function MaskPage() {
                 placeholder="Paste the LLM response that still contains [NAME_1], [EMAIL_1], etc."
                 icon="unlock"
                 footer={unmaskFooter}
-                actionLabel="Unmask"
+                actionLabel="Restore"
                 actionIcon="play"
                 onAction={doUnmask}
                 disabled={!unmaskState.input.trim()}
@@ -314,7 +317,6 @@ export default function MaskPage() {
         searchQuery={history.searchQuery}
         onSearchChange={history.setSearchQuery}
         onLoad={onLoadMask}
-        onReUnmask={onReUnmask}
         onDelete={history.remove}
         onClear={history.clear}
         onUpdateMapping={history.updateMapping}

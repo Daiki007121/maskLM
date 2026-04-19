@@ -10,7 +10,6 @@ interface HistoryPanelProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onLoad: (entry: HistoryEntry) => void;
-  onReUnmask: (entry: HistoryEntry) => void;
   onDelete: (id: string) => void;
   onClear: () => void;
   onUpdateMapping: (id: string, mapping: Record<string, string>) => void;
@@ -24,7 +23,6 @@ export default function HistoryPanel({
   searchQuery,
   onSearchChange,
   onLoad,
-  onReUnmask,
   onDelete,
   onClear,
   onUpdateMapping,
@@ -109,6 +107,9 @@ export default function HistoryPanel({
                   {h.original.slice(0, 120)}
                   {h.original.length > 120 ? "…" : ""}
                 </div>
+                {h.unmaskOutput && (
+                  <div className="history-unmask-badge">✓ Unmasked</div>
+                )}
 
                 {editingId === h.id ? (
                   <div className="mapping-editor">
@@ -147,18 +148,11 @@ export default function HistoryPanel({
                 ) : (
                   <div className="history-actions">
                     <button
-                      className="history-action"
+                      className="history-action primary"
                       onClick={() => onLoad(h)}
-                      title="Re-edit original text in Mask panel"
+                      title="Restore full session into both panels"
                     >
-                      Edit
-                    </button>
-                    <button
-                      className="history-action"
-                      onClick={() => onReUnmask(h)}
-                      title="Load masked text + mapping into Unmask panel"
-                    >
-                      Re-unmask
+                      Load
                     </button>
                     <button
                       className="history-action"

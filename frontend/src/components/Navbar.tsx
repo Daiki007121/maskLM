@@ -3,14 +3,12 @@ import * as Icon from "./Icons";
 interface NavbarProps {
   theme: "light" | "dark";
   onToggleTheme: () => void;
-  historyCount: number;
   onOpenHistory: () => void;
 }
 
 export default function Navbar({
   theme,
   onToggleTheme,
-  historyCount,
   onOpenHistory,
 }: NavbarProps) {
   return (
@@ -22,8 +20,7 @@ export default function Navbar({
       </div>
       <div className="topbar-actions">
         <button
-          className="icon-btn badge"
-          data-count={historyCount || undefined}
+          className="icon-btn"
           onClick={onOpenHistory}
           title="History (⌘K)"
         >

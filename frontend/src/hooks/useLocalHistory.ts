@@ -30,6 +30,7 @@ export interface UseLocalHistoryReturn {
   remove: (id: string) => void;
   clear: () => void;
   updateMapping: (id: string, mapping: Record<string, string>) => void;
+  updateUnmask: (id: string, unmaskInput: string, unmaskOutput: string) => void;
 }
 
 export function useLocalHistory(): UseLocalHistoryReturn {
@@ -71,6 +72,17 @@ export function useLocalHistory(): UseLocalHistoryReturn {
     [],
   );
 
+  const updateUnmask = useCallback(
+    (id: string, unmaskInput: string, unmaskOutput: string) => {
+      setEntries((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, unmaskInput, unmaskOutput } : e,
+        ),
+      );
+    },
+    [],
+  );
+
   const filteredEntries = useMemo(() => {
     if (!searchQuery.trim()) return entries;
     const q = searchQuery.toLowerCase();
@@ -90,5 +102,6 @@ export function useLocalHistory(): UseLocalHistoryReturn {
     remove,
     clear,
     updateMapping,
+    updateUnmask,
   };
 }

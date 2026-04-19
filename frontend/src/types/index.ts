@@ -33,4 +33,8 @@ export interface HistoryEntry {
   original: string;
   masked: string;
   mapping: Record<string, string>;
+  /** The LLM response pasted into unmask (if user unmasked). */
+  unmaskInput?: string;
+  /** The restored text after unmasking (if user unmasked). */
+  unmaskOutput?: string;
 }

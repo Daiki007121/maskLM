@@ -1,40 +1,29 @@
 # Project 3 Reflection — Daiki
 
-> **Target length**: 500 words. This skeleton contains placeholder paragraphs 
-> keyed to the four reflection prompts. Replace each placeholder with specific, 
-> concrete details from the actual sprint. Do not keep the `[FILL IN]` markers 
-> in the final submission.
-
 ## 1. Which Claude Code feature changed your workflow the most on this project, and why?
 
-[FILL IN: ~150 words. Candidates: custom skills (tdd-feature-v2), hooks 
-(PostToolUse ruff-format), MCP (GitHub issue lifecycle), CLAUDE.md + @import. 
-Pick ONE that had the biggest effect and give a specific moment from Sprint 1 
-or Sprint 2 where you noticed the difference. Example: "Before /tdd-feature-v2, 
-I would write implementation first and tests second about half the time. During 
-the re-injection feature, the skill's Phase 0 forced me to create Issue #2 
-before any file existed, and the RED commit landed before the GREEN commit by 
-11 minutes..."]
+The Claude Code feature that changed my workflow the most was the GitHub MCP. Before MCP, the TDD cycle had a bunch of tiny interruptions — switching to the browser to file an issue, thinking up a commit message that actually described the phase, going back to GitHub to link things up. Each step was small, but they stacked up and broke the rhythm.
+
+With `/tdd-feature-v2` plugged into GitHub MCP, the whole thing just flowed. I'd describe the feature, Claude Code would open the issue, its number would show up in every commit as `refs #N`, and at REFACTOR time the issue got closed automatically with the three commit hashes linked in. Honestly the part that got me was not having to write commit messages. Claude Code read the staged diff and produced things like `[RED] test: add failing tests for X (refs #2)` — consistently formatted, actually accurate. It sounds small, but once you don't have to pause and write a message every few minutes, the TDD cycle just clicks.
 
 ## 2. What was the hardest debugging or architectural decision in this project, and how did Claude Code help or not help?
 
-[FILL IN: ~150 words. Candidates: the CORS discovery, the Supabase Redirect 
-URL bug, the Vercel preset misdetection, the stateless vs stateful backend 
-decision, choosing Presidio over regex. Pick a moment where you had to choose 
-or diagnose something non-obvious. Specifically note whether Claude Code 
-accelerated you or got in the way — be honest, not promotional.]
+The hardest debug wasn't actually a code bug — it was me and Claude getting stuck together on a wrong assumption about the repo. Jason had been pushing straight to `main`, but I'd glanced at GitHub and thought `dev` was the latest. I told Claude that, and Claude just rolled with it. We spent like 15–20 minutes making plans on top of that wrong picture before I finally went "wait, let me actually check" and ran `git log main..dev --oneline`.
+
+Here's what I noticed: Claude reconstructed the real state fast once I pointed out the contradiction. But before that, it never questioned my version of reality — it just built on it. That's a pretty real failure mode of working with AI. If you hand it a busted mental model, it'll happily keep layering stuff on top, because LLMs mostly work off what you give them.
+
+The lesson wasn't "don't trust AI." It was more like: AI is only as good as the context you drop on it, and "let me just double-check" is still worth doing even when the AI sounds confident. Ever since that day I've been running `git status` and `git log` before letting Claude plan anything around the repo.
 
 ## 3. What's one Claude Code feature you didn't use on this project but would use next time?
 
-[FILL IN: ~100 words. Candidates: parallel worktrees, agent teams 
-(CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1), the Agent SDK, more sophisticated 
-hooks (e.g., a pre-commit hook that runs the security-reviewer sub-agent 
-automatically), writer/reviewer pattern on every PR. Pick one and explain 
-the specific use case that would motivate adopting it.]
+Something I didn't really use this time but want to try next project is agent teams (with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`). Right now when I use Claude Code, it's basically one agent doing everything in sequence — plan, implement, test, commit. That works fine for small features, but on this project I could already feel the limit: on bigger changes I'd want one agent focused on writing the code while another runs tests and a third checks security, all in parallel. Doing that sequentially with one agent ate real time.
+
+The other thing I want to get consistent on is the writer/reviewer pattern on every PR. We did it on PR #3 and #4, but it wasn't a habit — it happened because the rubric pushed us toward it. Next project I want a reviewer sub-agent running on every PR by default, not just the ones where I remember to invoke it.
 
 ## 4. What did working with Jason teach you about AI-assisted pair development?
 
-[FILL IN: ~100 words. Candidates: split ownership worked because… / async 
-standups via Slack were enough because… / the one thing that broke when we 
-didn't sync was…. Be specific. Don't say "communication is important" — say 
-what specifically mattered and how Claude Code fit in or didn't.]
+Working with Jason taught me that pairing on an AI-assisted project is still about playing to different strengths. Jason took implementation (backend, frontend, CI), I took planning, deploy, and docs. If we hadn't split it, both of us would've just been nodding at each other's Claude Code sessions, which doesn't really help anyone.
+
+The surprise was that the split helped Claude too. Jason's Claude Code kept getting better at src/, backend/, frontend/src/ because that's where he worked. Mine got better at .claude/, docs/, and CI. Each of us had an AI that actually knew our patch, which was faster than one shared AI trying to juggle everything.
+
+The other side of it: the last part of the project was me just waiting on Jason to update Fly.io CORS because I didn't have flyctl access. Even with AI on both ends, the waiting didn't go away — it just moved to who had the permissions. Next time I'd set up shared access from day one so either of us can unblock the other.

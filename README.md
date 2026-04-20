@@ -6,6 +6,25 @@ to any LLM, then paste the LLM's response back to restore the
 original information — all without PII ever touching a third-party
 service.
 
+```mermaid
+flowchart LR
+    U[User's browser] -->|paste text| MASK[MaskLM frontend]
+    MASK -->|POST /api/mask| BE[FastAPI backend<br/>Fly.io]
+    BE -->|NER + regex| NLP[Presidio + spaCy<br/>en_core_web_sm]
+    NLP -->|placeholders| BE
+    BE -->|masked_text + mapping| MASK
+    MASK -->|copy + paste| LLM[External LLM<br/>ChatGPT / Claude / etc.]
+    LLM -->|response with tokens| MASK
+    MASK -->|POST /api/unmask| BE
+    BE -->|original text| MASK
+    MASK -->|localStorage| HIST[Session history]
+
+    style BE fill:#e8f4f8
+    style NLP fill:#f0e8f8
+    style MASK fill:#f8f0e8
+    style LLM fill:#ffeaea
+```
+
 ```
   ┌──────────────────────────────────────────────────────────┐
   │                MaskLM (your browser)                     │

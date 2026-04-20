@@ -149,3 +149,100 @@ auth flow (`frontend/src/contexts/AuthContext.tsx`,
 
 Output: a structured report with `APPROVE | REQUEST_CHANGES | NEEDS_DISCUSSION` 
 verdict.
+
+## OWASP Top 10 Awareness
+
+MaskLM's design addresses the OWASP Top 10 (2021) as follows. Depth is 
+weighted toward the categories most relevant to a privacy-first PII proxy.
+
+### A01: Broken Access Control
+
+Supabase Auth enforces session ownership. API routes that mutate or return 
+user-scoped data require a valid Supabase JWT. The current MVP has no 
+user-owned resources on the server (backend is stateless, mapping lives in 
+the client's localStorage), so the A01 surface is narrow — but any future 
+feature that adds server-side user data (e.g., shared mapping templates) 
+must enable Supabase Row Level Security (RLS) before landing. The 
+`security-reviewer` sub-agent flags missing RLS on new tables.
+
+### A02: Cryptographic Failures
+
+All transport is HTTPS: Vercel serves the frontend over TLS, Fly.io serves 
+the backend over TLS, Supabase uses TLS. No secrets are committed to the 
+repo — `.gitignore` covers `.env` and `.env.*`, and `.mcp.json` references 
+tokens via shell env var expansion (`${GITHUB_PERSONAL_ACCESS_TOKEN}`) 
+rather than literal values. The backend never writes original PII to disk, 
+so at-rest encryption of PII is not a concern (there is nothing at rest). 
+LocalStorage history in the browser is currently unencrypted (MVP 
+trade-off documented in `README.md` roadmap); AES-GCM encryption of 
+history entries is a planned post-MVP feature.
+
+### A03: Injection
+
+API inputs are validated through Pydantic models in `backend/app/schemas.py`. 
+The backend has no database, no SQL, no shell command execution from user 
+input, and no dynamic `eval`, so the SQL / command / code-injection 
+surfaces are effectively absent. The one input-driven branch is 
+Presidio's NER pipeline, which processes text as data. In the frontend, 
+React escapes JSX children by default, preventing reflected XSS through 
+masked/unmasked text.
+
+### A04: Insecure Design
+
+The statelessness of the backend is a deliberate design choice to minimize 
+blast radius: a compromised backend instance has no PII to leak because 
+mappings are held by the client. The typed placeholder contract 
+(`[NAME_1]`, `[EMAIL_1]`, etc.) is enforced on both sides of the 
+mask/unmask round-trip and validated by `src/validation.py`. The 
+double-mask rejection (HTTP 400 if input already contains placeholder-like 
+tokens) prevents re-masking attacks where an attacker could exhaust token 
+ids or poison a mapping.
+
+### A05: Security Misconfiguration
+
+CORS is env-driven via `ALLOWED_ORIGINS` on Fly.io — an explicit allowlist, 
+never wildcard. The default (no env var set) falls back to local dev 
+origins only. Vercel serves the frontend with a strict Content-Security-
+Policy header (`script-src 'self'`, no inline scripts, no external 
+connect-src except the Fly backend), plus `X-Content-Type-Options: nosniff`, 
+`X-Frame-Options: DENY`, and `Referrer-Policy: strict-origin-when-cross-origin`. 
+FastAPI runs in production with `reload=False` and no debug endpoints 
+exposed.
+
+### A06: Vulnerable and Outdated Components
+
+Python dependencies are pinned in `uv.lock`; Node dependencies are pinned 
+in `frontend/pnpm-lock.yaml`. Adding `npm audit` and `pip-audit` as a CI 
+gate is a tracked next step.
+
+### A07: Identification and Authentication Failures
+
+Supabase handles authentication. Email/password accounts use Supabase's 
+default handling (bcrypt hashing, rate limiting on signin). Google OAuth 
+uses PKCE. Session tokens are scoped to specific Redirect URLs (see 
+Supabase Auth → URL Configuration) — the production allowlist contains 
+`https://mask-lm.vercel.app/**`, the Vercel preview pattern, and 
+`http://localhost:5173/**` for dev. Minimum password length (6 chars) is 
+Supabase's default and is a documented tightening task for post-MVP.
+
+### A08: Software and Data Integrity Failures
+
+Dependencies are installed from pinned lockfiles, not floating versions. 
+CI runs on GitHub Actions with pinned action versions (`actions/checkout@v4`, 
+etc.). Git commit signing is not currently enforced but is a known gap.
+
+### A09: Security Logging and Monitoring Failures
+
+The single hard rule (also in the "Don'ts" section above): **no raw PII in 
+logs, ever**. Backend logs record request metadata (method, path, status) 
+but never request or response bodies. Exception handlers do not leak 
+unmasked text to the client. The `security-reviewer` sub-agent scans for 
+log/print statements that might receive PII-containing variables.
+
+### A10: Server-Side Request Forgery (SSRF)
+
+The backend makes no outbound HTTP requests based on user input. Presidio 
+and spaCy operate entirely locally with preloaded models. If a future 
+feature adds an LLM proxy (`/chat` endpoint on the roadmap), SSRF becomes 
+an in-scope concern and the request target must be restricted to an 
+allowlist of approved LLM provider hosts.

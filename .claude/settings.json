@@ -2,5 +2,30 @@
   "permissions": {
     "allow": ["Pytest", "Pip", "Python", "Git"],
     "deny": ["Bash(rm -rf *)", "Curl", "Wget"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; case \"$FILE\" in *.py) uv run ruff format \"$FILE\" 2>/dev/null || true ;; esac; exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); if [ \"$(echo \"$INPUT\" | python3 -c 'import json,sys; print(json.load(sys.stdin).get(\"stop_hook_active\", False))')\" = \"True\" ]; then exit 0; fi; uv run pytest tests/ backend/tests/ --cov=src -q 2>&1 | tail -20; exit 0",
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }

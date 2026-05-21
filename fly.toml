@@ -9,7 +9,7 @@ primary_region = 'sjc'
 [build]
 
 [env]
-  ALLOWED_ORIGINS = 'http://localhost:5173,http://localhost:3000'
+  ALLOWED_ORIGINS = 'https://mask-lm.vercel.app,http://localhost:5173,http://localhost:3000'
 
 [http_service]
   internal_port = 8000

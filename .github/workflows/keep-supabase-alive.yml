@@ -13,7 +13,8 @@ jobs:
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}")
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
           echo "Supabase responded with status: $response"
           if [ "$response" -ge 500 ]; then
             echo "Supabase might be down or paused"
